@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "surkit"
+#keywords = [ "X" ]
+authors = [
+    { name = "CodexDive" },
+]
+#description = "XXX."
+version = "0.1.0"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+requires-python = ">=3.6"
+
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "numpy",
+    "matplotlib"
+]
+
+[tool.setuptools.packages.find]
+#where = ["surkit"]
+#where = ["."]
+exclude = ["doc*", "example*"]

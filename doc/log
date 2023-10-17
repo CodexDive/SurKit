@@ -1,0 +1,297 @@
+Running Sphinx v6.1.3
+loading pickled environment... done
+[autosummary] generating autosummary for: index.rst, modules\easysurrogate.backend.rst, modules\easysurrogate.conditions.rst, modules\easysurrogate.data.rst, modules\easysurrogate.gradient2d.rst, modules\easysurrogate.losses.rst, modules\easysurrogate.nn.jax.rst, modules\easysurrogate.nn.oneflow.rst, modules\easysurrogate.nn.pytorch.rst, modules\easysurrogate.nn.rst, modules\easysurrogate.optimizer.rst, modules\easysurrogate.pde.rst, modules\easysurrogate.rst, modules\easysurrogate.train.rst, modules\easysurrogate.utils.rst, modules\modules.rst
+Backend not selected, use default backend.
+Using PyTorch backend.
+Failed to import easysurrogate.data.geo.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* AttributeError: module 'easysurrogate.data' has no attribute 'geo'
+Failed to import easysurrogate.nn.oneflow.activations.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.bayes_cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.bayes_dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.bayes_layer.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.bayes_nn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.fnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.initializers.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.nn_ensemble.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.pooling.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.transform.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.utils.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.oneflow.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.pde.pde.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.pde.pde2d.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.pde.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.optimizer.jax.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.optimizer.oneflow.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.optimizer.pytorch.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.optimizer.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.conditions.hard_condition.
+Possible hints:
+* AttributeError: module 'easysurrogate.conditions' has no attribute 'hard_condition'
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+Failed to import easysurrogate.conditions.icbc.
+Possible hints:
+* AttributeError: module 'easysurrogate.conditions' has no attribute 'icbc'
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+Failed to import easysurrogate.conditions.icbc2d.
+Possible hints:
+* AttributeError: module 'easysurrogate.conditions' has no attribute 'icbc2d'
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+Failed to import easysurrogate.pipeline.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.activations.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.bayes_cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.bayes_dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.bayes_layer.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.bayes_nn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.fnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.initializers.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.nn_ensemble.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.pooling.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.transform.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.utils.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.jax.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.utils.parse.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.utils.train.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.utils.train_jax.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.utils.train_oneflow.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.utils.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.train.train_jax.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.train.train_oneflow.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.train.train_pytorch.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.train.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.backend.oneflow_bkd.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* AttributeError: module 'easysurrogate.backend' has no attribute 'oneflow_bkd'
+Failed to import easysurrogate.nn.pytorch.activations.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.bayes_cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.bayes_dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.bayes_layer.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.bayes_nn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.cnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.dense_ed.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.fnn.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.initializers.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.nn_ensemble.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.pooling.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.transform.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.nn.pytorch.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.losses.jax.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.losses.oneflow.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+Failed to import easysurrogate.losses.
+Possible hints:
+* RuntimeError: This package is a placeholder. Please install oneflow following the instructions in https://github.com/Oneflow-Inc/oneflow#install-oneflow
+* KeyError: 'easysurrogate'
+building [mo]: targets for 0 po files that are out of date
+writing output... 
+building [html]: targets for 0 source files that are out of date
+updating environment: 0 added, 14 changed, 0 removed
+reading sources... [  7%] index                                                reading sources... [ 14%] modules/easysurrogate                                reading sources... [ 21%] modules/easysurrogate.backend                        reading sources... [ 28%] modules/easysurrogate.conditions                     reading sources... [ 35%] modules/easysurrogate.data                           reading sources... [ 42%] modules/easysurrogate.losses                         reading sources... [ 50%] modules/easysurrogate.nn                             reading sources... [ 57%] modules/easysurrogate.nn.jax                         reading sources... [ 64%] modules/easysurrogate.nn.oneflow                     reading sources... [ 71%] modules/easysurrogate.nn.pytorch                     reading sources... [ 78%] modules/easysurrogate.optimizer                      reading sources... [ 85%] modules/easysurrogate.pde                            reading sources... [ 92%] modules/easysurrogate.train                          reading sources... [100%] modules/easysurrogate.utils                          
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+writing output... [  6%] index                                                 writing output... [ 13%] modules/easysurrogate                                 writing output... [ 20%] modules/easysurrogate.backend                         writing output... [ 26%] modules/easysurrogate.conditions                      writing output... [ 33%] modules/easysurrogate.data                            writing output... [ 40%] modules/easysurrogate.losses                          writing output... [ 46%] modules/easysurrogate.nn                              writing output... [ 53%] modules/easysurrogate.nn.jax                          writing output... [ 60%] modules/easysurrogate.nn.oneflow                      writing output... [ 66%] modules/easysurrogate.nn.pytorch                      writing output... [ 73%] modules/easysurrogate.optimizer                       writing output... [ 80%] modules/easysurrogate.pde                             writing output... [ 86%] modules/easysurrogate.train                           writing output... [ 93%] modules/easysurrogate.utils                           writing output... [100%] modules/modules                                       
+generating indices... genindex py-modindex done
+highlighting module code... [ 14%] easysurrogate.backend.backend               highlighting module code... [ 28%] easysurrogate.backend.jax_bkd               highlighting module code... [ 42%] easysurrogate.backend.pytorch_bkd           highlighting module code... [ 57%] easysurrogate.data.dataset                  highlighting module code... [ 71%] easysurrogate.data.sampling                 highlighting module code... [ 85%] easysurrogate.gradient2d.sobelfilter        highlighting module code... [100%] easysurrogate.losses.pytorch                
+writing additional pages... search done
+copying static files... done
+copying extra files... done
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded, 78 warnings.
+
+The HTML pages are in build\html.
