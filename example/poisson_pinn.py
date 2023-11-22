@@ -3,13 +3,17 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-
+import os
+# choose backend from pytorch, oneflow, jax
+# os.environ['SRK_BACKEND'] = 'jax'
 import surkit
 import surkit.backend as bkd
 from surkit.nn import fnn
 from surkit.train import train
 
-layers = [64, 64, 64, 64]
+
+
+layers = [32, 32, 32, 32]
 activation = "Tanh"
 initializer = "He normal"
 loss_function = "MSE"
@@ -21,7 +25,7 @@ output = ["u"]
 max_iteration = 10000
 save_path = 'model/poisson_%s' % bkd.backend_name
 
-# # Dirichlet BC
+# Dirichlet BC
 # pde = ["D[u, {x, 2}] = 2"]
 # icbc = ["u = 0 | x = -1", "u = 4 | x = 1"]
 #
@@ -35,12 +39,20 @@ save_path = 'model/poisson_%s' % bkd.backend_name
 # def poisson(xx):
 #     return (xx + 1) ** 2
 
-# Robin BC
-pde = ["D[u, {x, 2}] = 2"]
-icbc = ["u = 0 | x = -1", "D[u, x] = u | x = 1"]
+# Periodic BC
+pde = ["-D[u, {x, 2}] = Pi ** 2 * Sin[Pi * x]"]
+icbc = ["u = 0 | x = -1", "u[x = 0] = u[x = 1]"]
+# icbc = ["u = 0 | x = -1", "u = 0 | x = 1"]
 
 def poisson(xx):
-    return (xx + 1) ** 2
+    return np.sin(np.pi * xx)
+
+# # Robin BC
+# pde = ["D[u, {x, 2}] = 2"]
+# icbc = ["u = 0 | x = -1", "D[u, x] = u | x = 1"]
+#
+# def poisson(xx):
+#     return (xx + 1) ** 2
 
 
 

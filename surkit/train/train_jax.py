@@ -2,6 +2,7 @@
 # -*- coding:UTF-8 -*-
 import pickle
 # from oneflow.utils.data import DataLoader
+import re
 import warnings
 from pathlib import Path
 
@@ -83,7 +84,7 @@ def train(
     best_loss = float('inf')
     pde_intermediate_dict = {}
     icbc_intermediate_dict = {}
-    # 无需采样
+    # no sampling required
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
@@ -116,27 +117,47 @@ def train(
 
     def parse_icbc(condition, params_, x_):
         out_dic_ = {}
-        conds, whens = condition
+        if len(condition) == 3:
+            # for periodic BC
+            cond, when_left, when_right = condition
+            left, right = cond.split('=')
+            input_tensor_dict_copy_l, out_dic_l, icbc_intermediate_dict_l = out_with_cond(out_dic_, params_, [when_left.split('=')])
+            ll = eval_with_vars(left, input_tensor_dict_copy_l, constant, out_dic_l, icbc_intermediate_dict_l)
+            input_tensor_dict_copy_r, out_dic_r, icbc_intermediate_dict_r = out_with_cond(out_dic_, params_, [when_right.split('=')])
+            rr = eval_with_vars(right, input_tensor_dict_copy_r, constant, out_dic_r, icbc_intermediate_dict_r)
+            return [(ll, rr)]
+        else:
+            conds, whens = condition
+            input_tensor_dict_copy, out_dic_, icbc_intermediate_dict = out_with_cond(out_dic_, params_, whens)
+            value_target_pairs = []
+            for cond in conds:
+                value_target_pairs.append(
+                    parse_pde(cond, input_tensor_dict_copy, constant, out_dic_, icbc_intermediate_dict)
+                )
+            return value_target_pairs
+
+    def out_with_cond(out_dic_, params_, whens):
         input_tensor_dict_copy = input_tensor_dict.copy()
         for when in whens:
             variable, value = when
-            variable = variable[5:-2]
-            input_tensor_dict_copy[variable] = jnp.zeros_like(input_tensor_dict_copy[variable]) + eval_with_vars(value, input_tensor_dict, constant, {}, {})
+            variable = re.search(r"\['(.*?)'\]", variable).group(1)
+            input_tensor_dict_copy[variable] = jnp.zeros_like(input_tensor_dict_copy[variable]) + eval_with_vars(value,
+                                                                                                                 input_tensor_dict,
+                                                                                                                 constant,
+                                                                                                                 {}, {})
         out_ = fwd(params_, jnp.concatenate(list(input_tensor_dict_copy.values()), axis=1))
         for index, out in enumerate(output):
             out_dic_[out] = jnp.expand_dims(out_[:, index], axis=1)
         for key_ in icbc_intermediate_dict.keys():
             grad_fn, ind = grad_fn_dict[key_]
             if len(input_tensor_dict) > 1:
-                icbc_intermediate_dict[key_] = grad_fn(params_, jnp.concatenate(list(input_tensor_dict_copy.values()), axis=1))[:, ind].reshape(-1, 1)
+                icbc_intermediate_dict[key_] = grad_fn(params_,
+                                                       jnp.concatenate(list(input_tensor_dict_copy.values()), axis=1))[
+                                               :, ind].reshape(-1, 1)
             else:
-                icbc_intermediate_dict[key_] = grad_fn(params_, jnp.concatenate(list(input_tensor_dict_copy.values()), axis=1))
-        value_target_pairs = []
-        for cond in conds:
-            value_target_pairs.append(
-                parse_pde(cond, input_tensor_dict, constant, out_dic_, icbc_intermediate_dict)
-            )
-        return value_target_pairs
+                icbc_intermediate_dict[key_] = grad_fn(params_,
+                                                       jnp.concatenate(list(input_tensor_dict_copy.values()), axis=1))
+        return input_tensor_dict_copy, out_dic_, icbc_intermediate_dict
 
     def loss_fn(params_, x):
         out_ = fwd(params_, jnp.concatenate(x, axis=1))
@@ -169,14 +190,11 @@ def train(
 
     jit_train_step = jax.jit(train_step)
     # jit_train_step = train_step
-    # 训练迭代
     for epoch in range(iterations):
-
-        # 随机采样
+        # sampling
         for key, value in input.items():
             if isinstance(value, dict):
                 input_tensor_dict[key] = jnp.array(random_sampler(value["low"], value["high"], value["size"]))
-
         if epoch == 0:
             if pde:
                 for i, v in enumerate(pde):
@@ -194,16 +212,14 @@ def train(
             for key in icbc_intermediate_dict.keys():
                 jax_grad(key)
 
-        # # 边界条件硬执行
         # if hard_condition:
         #     out_dic = convert(hard_condition, input_tensor_dict, constant, out_dic)
 
-
         state, loss = jit_train_step(state)
-        # 报告loss
+        # report loss
         if (epoch + 1) % report_interval == 0:
             print(epoch + 1, "Loss:", loss)
-            # 保存网络
+            # save parameters
             if path:
                 if loss < best_loss:
                     best_loss = loss
@@ -254,7 +270,7 @@ def train_gaussian(
     input_tensor_dict = {}
     ground_truth = {}
     best_loss = float('inf')
-    # 无需采样
+    # no sampling required
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
@@ -279,14 +295,12 @@ def train_gaussian(
 
     jit_train_step = jax.jit(train_step)
     # jit_train_step = train_step
-    # 训练迭代
-
     for epoch in range(iterations):
         state, loss = jit_train_step(state)
-        # 报告loss
+        # report loss
         if (epoch + 1) % report_interval == 0:
             print(epoch + 1, "Loss:", loss)
-            # 保存网络
+            # save parameters
             if path:
                 if loss < best_loss:
                     best_loss = loss
@@ -339,7 +353,7 @@ def train_bayesian(
     ground_truth = {}
     best_loss = float('inf')
 
-    # 无需采样
+    # no sampling required
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
@@ -362,10 +376,10 @@ def train_bayesian(
     best_state = None
     for epoch in range(iterations):
         state, loss = jit_train_step(state)
-        # 报告loss
+        # report loss
         if (epoch + 1) % report_interval == 0:
             print(epoch + 1, "Loss:", loss)
-            # 保存网络
+            # save parameters
             if path:
                 if loss < best_loss:
                     best_loss = loss

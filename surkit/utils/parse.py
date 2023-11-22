@@ -123,7 +123,6 @@ def equation_to_runnable(equation: str, inputs, constants, outs, dic):
         "dic" : lambda variable : "dic['%s']" % variable,
     }
     replace = lambda variable: re.sub(original_pattern(variable), locate_var_in_dicts(variable), equation)
-    # replace = lambda variable : equation.replace(original_pattern(variable), locate_var_in_dicts(variable))
 
     def locate_var_in_dicts(variable: str):
         if variable in inputs:
@@ -143,7 +142,7 @@ def equation_to_runnable(equation: str, inputs, constants, outs, dic):
             dic[variable] = None
         return replacement_pattern['dic'](variable)
 
-    for variable in variables:
+    for variable in set(variables):
         if variable not in math_list:
             equation = replace(variable)
     return equation
@@ -154,6 +153,17 @@ def split_pde(equation: str, inputs, constants, outs, dic):
     return [safe_compile(left), safe_compile(right)]
 
 def split_condition(equation: str, inputs, constants, outs, dic):
+    if '|' not in equation:
+        # for periodic BC
+        equation = re.sub(r"\s+", "", equation)
+        matches = re.match(r"(.*\[(.*?)=(.*?)\].*=.*\[(.*?)=(.*?)\].*)", equation)
+        cond = equation_to_runnable(
+            matches.group(1).replace("[" + matches.group(2) + "=" + matches.group(3) + "]", "").replace(
+                "[" + matches.group(4) + "=" + matches.group(5) + "]", ""), inputs, constants, outs, dic)
+        when_left = equation_to_runnable(matches.group(2) + "=" + matches.group(3), inputs, constants, outs, dic)
+        when_right = equation_to_runnable(matches.group(4) + "=" + matches.group(5), inputs, constants, outs, dic)
+        return [cond, when_left, when_right]
+
     code = equation_to_runnable(equation, inputs, constants, outs, dic)
     conds, whens = code.split('|')
     cond_list = []
