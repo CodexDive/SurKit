@@ -27,6 +27,7 @@ def train(
         output: list,
         net: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1000,
         optimizer: str = "Adam",
@@ -80,7 +81,9 @@ def train(
     state = train_state.TrainState.create(apply_fn=net.apply, params=params, tx=optimizer)
     # print(state.params)
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
     pde_intermediate_dict = {}
     icbc_intermediate_dict = {}
@@ -88,10 +91,12 @@ def train(
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
+            if evaluation: eval_input_tensor_dict[key] = jax.device_put(evaluation[key])
     if target:
         for key, value in target.items():
             if isinstance(value, np.ndarray):
                 ground_truth[key] = jax.device_put(value)
+                if evaluation: eval_ground_truth[key] = jax.device_put(evaluation[key])
 
     def fwd(params_, x):
         return state.apply_fn(params_, x)
@@ -218,14 +223,27 @@ def train(
         state, loss = jit_train_step(state)
         # report loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss)
             # save parameters
-            if path:
-                if loss < best_loss:
-                    best_loss = loss
+            if evaluation:
+                eval_out_dic = {}
+                predict = state.apply_fn(state.params, jnp.concatenate(list(eval_input_tensor_dict.values()), axis=1))
+                for index, out in enumerate(output):
+                    eval_out_dic[out] = jnp.expand_dims(predict[:, index], axis=1)
+                eval_loss = loss_from_dict(loss_func, eval_out_dic, eval_ground_truth, weight)
+                print(epoch + 1, "Train Loss:", loss, "Eval Loss:", eval_loss)
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss
                     state_dict = flax.serialization.to_state_dict(state)
                     pickle.dump(state_dict, open(path, "wb"))
                     print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss)
+                if path:
+                    if loss < best_loss:
+                        best_loss = loss
+                        state_dict = flax.serialization.to_state_dict(state)
+                        pickle.dump(state_dict, open(path, "wb"))
+                        print("Epoch", epoch + 1, "saved", path)
 
 def train_gaussian(
         input: dict,

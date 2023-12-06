@@ -33,6 +33,7 @@ def train(
         output: list,
         net: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1000,
         optimizer: str = "Adam",
@@ -84,7 +85,9 @@ def train(
     optimizer = optim.get(optimizer)
     optimizer = optimizer(net.parameters(), lr=lr)
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
     pde_intermediate_dict = {}
     icbc_intermediate_dict = {}
@@ -92,10 +95,12 @@ def train(
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = np_to_tensor(value)
+            if evaluation: eval_input_tensor_dict[key] = np_to_tensor(evaluation[key])
     if target:
         for key, value in target.items():
             if isinstance(value, np.ndarray):
                 ground_truth[key] = np_to_tensor(value)
+                if evaluation: eval_ground_truth[key] = np_to_tensor(evaluation[key])
 
     # 训练迭代
     for epoch in range(iterations):
@@ -141,13 +146,25 @@ def train(
         optimizer.step()
         # 报告loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss.item())
-            # 保存网络
-            if path:
-                if loss.item() < best_loss:
-                    best_loss = loss.item()
+            if evaluation:
+                eval_out_dic = {}
+                predict = net(flow.cat(list(eval_input_tensor_dict.values()), dim=1))
+                for index, out in enumerate(output):
+                    eval_out_dic[out] = flow.unsqueeze(predict[:, index], dim=1)
+                eval_loss = loss_from_dict(loss_func, eval_out_dic, eval_ground_truth, weight)
+                print(epoch + 1, "Train Loss:", loss.item(), "Eval Loss:", eval_loss.item())
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss.item()
                     flow.save(net, path)
                     print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss.item())
+                # 保存网络
+                if path:
+                    if loss.item() < best_loss:
+                        best_loss = loss.item()
+                        flow.save(net, path)
+                        print("Epoch", epoch + 1, "saved", path)
 
 
 def train_gaussian(
