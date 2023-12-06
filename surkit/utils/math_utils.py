@@ -131,6 +131,7 @@ ArcTanh = arctanh
 Log = log
 Log2 = log2
 Log10 = log10
+Sqrt = sqrt
 
 Pi = pi
 E = e
@@ -168,6 +169,8 @@ math_list = [
     "log2",
     "Log10",
     "log10",
+    "Sqrt",
+    "sqrt",
     "Pi",
     "pi",
     "E",
