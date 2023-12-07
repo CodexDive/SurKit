@@ -233,7 +233,7 @@ def train_gaussian(
         if (epoch + 1) % report_interval == 0:
             if evaluation:
                 eval_gt = torch.cat(list(eval_ground_truth.values()), dim=1)
-                predict = net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
+                predict, _ = net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
                 eval_loss = losses.MSELoss()(eval_gt, predict)
                 print(epoch + 1, "Train (GaussianNLLloss):", loss_list, "Eval Loss (l2):", eval_loss.item())
                 if eval_loss.item() < best_loss:
