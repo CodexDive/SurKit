@@ -168,6 +168,7 @@ def train_gaussian(
         output: list,
         net: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1,
         optimizer: str = "Adam",
@@ -198,20 +199,23 @@ def train_gaussian(
     # loss_fnc = losses.get("gaussiannll")
     optimizer = optim.get(optimizer)
 
-
     optimizer_list = []
     for model in net.models:
         optimizer_list.append(optimizer(model.parameters(), lr=lr))
 
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
     # 无需采样
     for key, value in input.items():
         input_tensor_dict[key] = np_to_tensor(value)
+        if evaluation: eval_input_tensor_dict[key] = np_to_tensor(evaluation[key])
     if target:
         for key, value in target.items():
             ground_truth[key] = np_to_tensor(value)
+            if evaluation: eval_ground_truth[key] = np_to_tensor(evaluation[key])
     x = torch.cat(list(input_tensor_dict.values()), dim=1)
     y = torch.cat(list(ground_truth.values()), dim=1)
     # 训练迭代
@@ -227,13 +231,23 @@ def train_gaussian(
 
         # 报告loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss_list)
-            # 保存网络
-            if path:
-                if np.mean(loss_list) < best_loss:
-                    best_loss = np.mean(loss_list)
+            if evaluation:
+                eval_gt = torch.cat(list(eval_ground_truth.values()), dim=1)
+                predict = net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
+                eval_loss = losses.MSELoss()(eval_gt, predict)
+                print(epoch + 1, "Train (GaussianNLLloss):", loss_list, "Eval Loss (l2):", eval_loss.item())
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss.item()
                     torch.save(net, path)
                     print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss_list)
+                # 保存网络
+                if path:
+                    if np.mean(loss_list) < best_loss:
+                        best_loss = np.mean(loss_list)
+                        torch.save(net, path)
+                        print("Epoch", epoch + 1, "saved", path)
 
 
 def train2d(
@@ -340,6 +354,7 @@ def train_bayesian(
         output: list,
         net: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1,
         optimizer: str = "Adam",
@@ -372,14 +387,18 @@ def train_bayesian(
     optimizer = optim.get(optimizer)
     optimizer = optimizer(net.parameters(), lr=lr)
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
     # 无需采样
     for key, value in input.items():
         input_tensor_dict[key] = np_to_tensor(value)
+        if evaluation: eval_input_tensor_dict[key] = np_to_tensor(evaluation[key])
     if target:
         for key, value in target.items():
             ground_truth[key] = np_to_tensor(value)
+            if evaluation: eval_ground_truth[key] = np_to_tensor(evaluation[key])
     x = torch.cat(list(input_tensor_dict.values()), dim=1)
     y = torch.cat(list(ground_truth.values()), dim=1)
     # 训练迭代
@@ -390,10 +409,21 @@ def train_bayesian(
         optimizer.step()
         # 报告loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss.item())
-            # 保存网络
-            if path:
-                if loss.item() < best_loss:
-                    best_loss = loss.item()
+            if evaluation:
+                eval_gt = torch.cat(list(eval_ground_truth.values()), dim=1)
+                predict = np.mean([net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
+                     for _ in range(samples)], axis=0)
+                eval_loss = losses.get("mse")(predict, eval_gt)
+                print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss
                     torch.save(net, path)
                     print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss.item())
+                # 保存网络
+                if path:
+                    if loss.item() < best_loss:
+                        best_loss = loss.item()
+                        torch.save(net, path)
+                        print("Epoch", epoch + 1, "saved", path)

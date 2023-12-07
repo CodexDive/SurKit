@@ -251,6 +251,7 @@ def train_gaussian(
         net,
 #: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1,
         optimizer: str = "Adam",
@@ -286,16 +287,20 @@ def train_gaussian(
     state = train_state.TrainState.create(apply_fn=net.apply, params=params, tx=optimizer)
     # print(state.params)
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
     # no sampling required
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
+            if evaluation: eval_input_tensor_dict[key] = jax.device_put(evaluation[key])
     if target:
         for key, value in target.items():
             if isinstance(value, np.ndarray):
                 ground_truth[key] = jax.device_put(value)
+                if evaluation: eval_ground_truth[key] = jax.device_put(evaluation[key])
 
     def fwd(params_, x):
         return state.apply_fn(params_, x, True)
@@ -317,20 +322,32 @@ def train_gaussian(
         state, loss = jit_train_step(state)
         # report loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss)
-            # save parameters
-            if path:
-                if loss < best_loss:
-                    best_loss = loss
+            if evaluation:
+                eval_gt = jnp.concatenate(list(eval_ground_truth.values()), axis=1)
+                predict_mean, _ = state.apply_fn(state.params, jnp.concatenate(list(eval_input_tensor_dict.values()), axis=1))
+                eval_loss = losses.get("mse")(predict_mean, eval_gt)
+                print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss
                     state_dict = flax.serialization.to_state_dict(state)
                     pickle.dump(state_dict, open(path, "wb"))
                     print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss)
+                # save parameters
+                if path:
+                    if loss < best_loss:
+                        best_loss = loss
+                        state_dict = flax.serialization.to_state_dict(state)
+                        pickle.dump(state_dict, open(path, "wb"))
+                        print("Epoch", epoch + 1, "saved", path)
 
 def train_bayesian(
         input: dict,
         output: list,
         net: nn.Module,
         iterations: int,
+        evaluation: dict = None,
         path: str = None,
         report_interval: int = 1,
         optimizer: str = "Adam",
@@ -368,17 +385,21 @@ def train_bayesian(
     state = train_state.TrainState.create(apply_fn=net.apply, params=params, tx=optimizer)
     # print(state.params)
     input_tensor_dict = {}
+    eval_input_tensor_dict = {}
     ground_truth = {}
+    eval_ground_truth = {}
     best_loss = float('inf')
-
     # no sampling required
     for key, value in input.items():
         if isinstance(value, np.ndarray):
             input_tensor_dict[key] = jax.device_put(value)
+            if evaluation: eval_input_tensor_dict[key] = jax.device_put(evaluation[key])
     if target:
         for key, value in target.items():
             if isinstance(value, np.ndarray):
                 ground_truth[key] = jax.device_put(value)
+                if evaluation: eval_ground_truth[key] = jax.device_put(evaluation[key])
+
 
 
     def loss_fn(params_):
@@ -391,20 +412,27 @@ def train_bayesian(
         return new_state, loss_
 
     jit_train_step = jax.jit(train_step)
-    best_state = None
     for epoch in range(iterations):
         state, loss = jit_train_step(state)
         # report loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss)
-            # save parameters
-            if path:
-                if loss < best_loss:
-                    best_loss = loss
-                    best_state = state
+            if evaluation:
+                eval_gt = jnp.concatenate(list(eval_ground_truth.values()), axis=1)
+                predict = np.mean([state.apply_fn(state.params, jnp.concatenate(list(eval_input_tensor_dict.values()), axis=1))
+                               for _ in range(samples)], axis=0)
+                eval_loss = losses.get("mse")(predict, eval_gt)
+                print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
+                if eval_loss.item() < best_loss:
+                    best_loss = eval_loss
                     state_dict = flax.serialization.to_state_dict(state)
                     pickle.dump(state_dict, open(path, "wb"))
                     print("Epoch", epoch + 1, "saved", path)
-    print('Finished Training')
-    # print(state.params)
-    state = best_state
+            else:
+                print(epoch + 1, "Loss:", loss)
+                # save parameters
+                if path:
+                    if loss < best_loss:
+                        best_loss = loss
+                        state_dict = flax.serialization.to_state_dict(state)
+                        pickle.dump(state_dict, open(path, "wb"))
+                        print("Epoch", epoch + 1, "saved", path)
