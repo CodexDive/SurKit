@@ -240,7 +240,6 @@ def train_gaussian(
             if evaluation:
                 eval_gt = flow.cat(list(eval_ground_truth.values()), dim=1)
                 predict, _ = net(flow.cat(list(eval_input_tensor_dict.values()), dim=1))
-                print(eval_gt)
                 eval_loss = losses.get("mse")(eval_gt, predict)
                 print(epoch + 1, "Train (GaussianNLLloss):", loss_list, "Eval Loss (l2):", eval_loss.item())
                 if eval_loss.item() < best_loss:
