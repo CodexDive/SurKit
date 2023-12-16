@@ -88,7 +88,7 @@ class TransConv2d(nn.Module):
 
     def setup(self):
         self.w = self.param('w', jax.nn.initializers.glorot_normal(),
-                            (self.out_channels, self.in_channels, *_pair(self.kernel_size)))
+                            (self.in_channels, self.out_channels, *_pair(self.kernel_size)))
         if self.bias:
             self.b = self.param('b', jax.nn.initializers.zeros, (self.out_channels))
 
