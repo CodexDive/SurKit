@@ -100,14 +100,16 @@ def convert_math_to_python(equation: str):
 
 def equation_to_runnable(equation: str, inputs, constants, outs, dic):
     """
-    Replace the variable name into exist value in dicts
-
+    Parse the Mathematica-style formula string into python-executable code strings by substituting the variable name string with the “dict[variable name]” string.
+    i.e. "D[y, x] + x = g * y" => "grads['y_x'] + inputs['x'] = constants['g'] * outs['y']",
+     both lhs and rhs of the equation are python-executable code, which are convenient for subsequent calculations
     Args:
         equation (str): a string contains user defined variable
         inputs (dict[str, Tensor]): dict with input features' names and their values
         constants (dict[str, int | float]): dict with constants' names and their values
-        outs (dict[str, Tensor]): dict with output features' names and their values
-        dic (dict[str, Tensor]): dict with gradients or intermediate variables' names and their values
+        outs (dict[str, Tensor]): dict with output features' names and their values, values can be None
+        dic (dict[str, Tensor]): dict with gradients or intermediate variables' names and their values, values can be None
+        dic (dict[str, Tensor]): dict with gradients or intermediate variables' names and their values, values can be None
     Returns:
         str: an executable code string
     """
