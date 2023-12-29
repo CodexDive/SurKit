@@ -5,13 +5,16 @@ import pickle
 import re
 import warnings
 from pathlib import Path
+from typing import Any
 
 import flax
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import numpy as np
+from flax.core.frozen_dict import unfreeze
 from flax.training import train_state
+from jax_dataloader import DataLoader
 
 from .. import losses
 from ..data.sampling import random_sampler
@@ -21,6 +24,8 @@ from ..pde.pde import parse_pde
 from ..utils.parse import eval_with_vars, split_pde, split_condition, split_hard_condition, loss_from_list, \
     loss_from_dict
 
+class TrainState(train_state.TrainState):
+    batch_stats: Any = None
 
 def train(
         input: dict,
@@ -194,7 +199,7 @@ def train(
         return new_state, loss_
 
     jit_train_step = jax.jit(train_step)
-    # jit_train_step = train_step
+
     for epoch in range(iterations):
         # sampling
         for key, value in input.items():
@@ -342,6 +347,101 @@ def train_gaussian(
                         pickle.dump(state_dict, open(path, "wb"))
                         print("Epoch", epoch + 1, "saved", path)
 
+def train2d(
+        input: DataLoader,
+        net: nn.Module,
+        iterations: int,
+        report_interval: int,
+        optimizer: str,
+        lr: float,
+        loss_function: str,
+        evaluation: DataLoader,
+        path: str = None,
+        scheduler_step: int = None,
+        scheduler_gamma: float = None,
+):
+    if path:
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+    else:
+        warnings.warn("The save path is not specified, the model will not be saved")
+
+    loss_func = losses.get(loss_function)
+    optimizer = optim.get(optimizer)
+    optimizer = optimizer(learning_rate=lr)
+
+    for sample in input:
+        sample_shape = sample[0].shape
+        break
+
+    init_key = jax.random.PRNGKey(2300)
+
+    # val = unfreeze(net.init(init_key, jax.random.uniform(init_key, sample_shape)))
+    val = net.init(init_key, jax.random.uniform(init_key, sample_shape))
+    bn = False
+    if 'batch_stats' in val:
+        bn = True
+        params = val['params']
+        batch_stats = val['batch_stats']
+        state = TrainState.create(apply_fn=net.apply, params=params, batch_stats=batch_stats, tx=optimizer)
+    else:
+        state = TrainState.create(apply_fn=net.apply, params=val, tx=optimizer)
+
+    best_loss = float('inf')
+
+    def train_step(state, x, y):
+        def loss_fn(params):
+            if bn:
+                out, updates = state.apply_fn({'params': params, 'batch_stats': state.batch_stats},
+                                              x=x, train=True, mutable=['batch_stats'])
+                gt_loss = loss_func(out, y)
+                return gt_loss, updates
+            else:
+                out = state.apply_fn(params, x=x, train=True)
+                gt_loss = loss_func(out, y)
+                return gt_loss
+        grad_fn = jax.value_and_grad(loss_fn, has_aux=bn)
+        if bn:
+            (loss_, updates), grads = grad_fn(state.params)
+            state = state.apply_gradients(grads=grads)
+            state = state.replace(batch_stats=updates['batch_stats'])
+        else:
+            loss_, grads = grad_fn(state.params)
+            state = state.apply_gradients(grads=grads)
+        return state, loss_
+
+    jit_train_step = jax.jit(train_step)
+
+    for epoch in range(iterations):
+        loss_sum = 0.
+        for batch_idx, pair in enumerate(input):
+            # print(pair[0].shape)
+            state, loss = jit_train_step(state, pair[0], pair[1])
+            loss_sum += loss
+        if (epoch + 1) % report_interval == 0:
+            if evaluation:
+                eval_loss_sum = 0.
+                for batch_idx, pair in enumerate(input):
+                    if bn: predict = state.apply_fn({'params': state.params, 'batch_stats': state.batch_stats}, pair[0])
+                    else: predict = state.apply_fn( state.params, pair[0])
+                    eval_loss = loss_func(predict, pair[1])
+                    eval_loss_sum += eval_loss
+                print(epoch + 1, "Train Loss:", loss_sum / len(input), "Eval Loss:", eval_loss_sum / len(evaluation))
+                if path:
+                    if eval_loss_sum < best_loss:
+                        best_loss = eval_loss_sum
+                        state_dict = flax.serialization.to_state_dict(state)
+                        pickle.dump(state_dict, open(path, "wb"))
+                        print("Epoch", epoch + 1, "saved", path)
+            else:
+                print(epoch + 1, "Loss:", loss_sum / len(input))
+                # save parameters
+                if path:
+                    if loss_sum < best_loss:
+                        best_loss = loss_sum
+                        state_dict = flax.serialization.to_state_dict(state)
+                        pickle.dump(state_dict, open(path, "wb"))
+                        print("Epoch", epoch + 1, "saved", path)
+
 def train_bayesian(
         input: dict,
         output: list,
@@ -400,8 +500,6 @@ def train_bayesian(
                 ground_truth[key] = jax.device_put(value)
                 if evaluation: eval_ground_truth[key] = jax.device_put(evaluation[key])
 
-
-
     def loss_fn(params_):
         return elbo(jnp.concatenate(list(input_tensor_dict.values()), axis=1),
                     jnp.concatenate(list(ground_truth.values()), axis=1), samples, net, params_)
@@ -421,7 +519,7 @@ def train_bayesian(
                 predict = np.mean([state.apply_fn(state.params, jnp.concatenate(list(eval_input_tensor_dict.values()), axis=1))
                                for _ in range(samples)], axis=0)
                 eval_loss = losses.get("mse")(predict, eval_gt)
-                print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
+                # print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
                 if eval_loss.item() < best_loss:
                     best_loss = eval_loss
                     state_dict = flax.serialization.to_state_dict(state)
