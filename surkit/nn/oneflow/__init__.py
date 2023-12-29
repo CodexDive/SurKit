@@ -15,4 +15,6 @@ __all__ = [
     "initializers",
     "nn_ensemble",
     "pooling",
+    "fno",
+    "unet"
 ]
