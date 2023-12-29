@@ -193,12 +193,10 @@ def train_gaussian(
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     else:
         warnings.warn("The save path is not specified, the model will not be saved")
-
     net.train()
     loss_fnc = nn.GaussianNLLLoss()
     # loss_fnc = losses.get("gaussiannll")
     optimizer = optim.get(optimizer)
-
     optimizer_list = []
     for model in net.models:
         optimizer_list.append(optimizer(model.parameters(), lr=lr))
@@ -218,7 +216,7 @@ def train_gaussian(
             if evaluation: eval_ground_truth[key] = np_to_tensor(evaluation[key])
     x = torch.cat(list(input_tensor_dict.values()), dim=1)
     y = torch.cat(list(ground_truth.values()), dim=1)
-    # 训练迭代
+
     for epoch in range(iterations):
         loss_list = []
         for i in range(net.n_models):
@@ -234,7 +232,7 @@ def train_gaussian(
             if evaluation:
                 eval_gt = torch.cat(list(eval_ground_truth.values()), dim=1)
                 predict, _ = net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
-                eval_loss = losses.MSELoss()(eval_gt, predict)
+                eval_loss = losses.get("mse")(eval_gt, predict)
                 print(epoch + 1, "Train (GaussianNLLloss):", loss_list, "Eval Loss (l2):", eval_loss.item())
                 if eval_loss.item() < best_loss:
                     best_loss = eval_loss.item()
@@ -242,111 +240,167 @@ def train_gaussian(
                     print("Epoch", epoch + 1, "saved", path)
             else:
                 print(epoch + 1, "Loss:", loss_list)
-                # 保存网络
                 if path:
                     if np.mean(loss_list) < best_loss:
                         best_loss = np.mean(loss_list)
                         torch.save(net, path)
                         print("Epoch", epoch + 1, "saved", path)
 
-
 def train2d(
         input: DataLoader,
-        constant: dict,
-        inputs: list,
-        output: list,
-        icbc: list,
-        pde: list,
         net: nn.Module,
         iterations: int,
         report_interval: int,
         optimizer: str,
         lr: float,
         loss_function: str,
-        imsize: int,
+        evaluation: DataLoader,
         path: str = None,
-        device='gpu',
-        pde_coef: float = 1.,
-        condition_coef: float = 1.,
-        gt_coef: float = 1.,
+        scheduler_step: int = None,
+        scheduler_gamma: float = None,
 ):
     if path:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     else:
         warnings.warn("The save path is not specified, the model will not be saved")
-
     net.train()
-    # net.to(device)
-    print("<--------------training-------------->")
-    # 获取损失函数，优化器配置
     loss_func = losses.get(loss_function)
     optimizer = optim.get(optimizer)
     optimizer = optimizer(net.parameters(), lr=lr)
+    if scheduler_step:
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_step, gamma=scheduler_gamma)
     best_loss = float('inf')
-    imgfilter = SobelFilter(imsize=imsize)
-    pde_intermediate_dict = {}
-    icbc_intermediate_dict = {}
-    # 训练迭代
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3, div_factor=2., pct_start=0.3,
-                                                    steps_per_epoch=len(input), epochs=iterations)
 
     for epoch in range(iterations):
         loss_sum = 0.
         for batch_idx, pair in enumerate(input):
             img = pair[0]
             optimizer.zero_grad()
-            img = img.to(device)
-            # 输出
-
-            input_tensor_dict = {}
-            for index, input_ in enumerate(inputs):
-                input_tensor_dict[input_] = torch.unsqueeze(img[:, index], dim=1)
-
-            out_ = net(img)
-            out_dic = {}
-            for index, out in enumerate(output):
-                out_dic[out] = torch.unsqueeze(out_[:, index], dim=1)
-
-            if batch_idx + epoch == 0:
-                if pde:
-                    for i, v in enumerate(pde):
-                        pde[i] = split_pde(v, input_tensor_dict, constant, out_dic, pde_intermediate_dict)
-                if icbc:
-                    for i, v in enumerate(icbc):
-                        icbc[i] = split_condition(v, input_tensor_dict, constant, out_dic, icbc_intermediate_dict)
-
-
-            for key in pde_intermediate_dict.keys():
-                pde_intermediate_dict[key] = get_grad2d(key, input_tensor_dict, pde_intermediate_dict, out_dic, imgfilter)
-
-            for key in pde_intermediate_dict.keys():
-                pde_intermediate_dict[key] = get_grad(key, input_tensor_dict, pde_intermediate_dict, out_dic)
-            pde_losses = [parse_pde(equation, input_tensor_dict, constant, out_dic, pde_intermediate_dict) for equation in pde]
-            pde_loss = loss_from_list(loss_func, pde_losses, None)
-
-            icbc_losses = []
-            for condition in icbc:
-                icbc_losses += parse_icbc2d(condition, input_tensor_dict, constant, output, icbc_intermediate_dict)
-            icbc_loss = loss_from_list(loss_func, icbc_losses, None)
-
-            loss = pde_coef * pde_loss + condition_coef * icbc_loss
-            if len(pair) == 2:
-                gt_loss = gt_coef * loss_func(pair[1].to(device), out_)
-                loss += gt_loss
-
+            out = net(img)
+            loss = loss_func(pair[1], out)
             loss_sum += loss.item()
             loss.backward()
             optimizer.step()
+        if scheduler_step:
             scheduler.step()
-            # 报告loss
         if (epoch + 1) % report_interval == 0:
-            print(epoch + 1, "Loss:", loss_sum / (batch_idx + 1))
-            # 保存网络
-            if path:
-                if loss_sum < best_loss:
-                    best_loss = loss_sum
+            if evaluation:
+                eval_loss_sum = 0.
+                for batch_idx, pair in enumerate(evaluation):
+                    img = pair[0]
+                    out = net(img)
+                    eval_loss_sum += loss_func(pair[1], out).item()
+                print(epoch + 1, "Train Loss:", loss_sum / len(input), "Eval Loss:", eval_loss_sum / len(evaluation))
+                if eval_loss_sum < best_loss:
+                    best_loss = eval_loss_sum
                     torch.save(net, path)
                     print("Epoch", epoch + 1, "saved")
+            else:
+                if path:
+                    print(epoch + 1, "Loss:", loss_sum / len(input))
+                    if loss_sum < best_loss:
+                        best_loss = loss_sum
+                        torch.save(net, path)
+                        print("Epoch", epoch + 1, "saved")
+
+
+# def train2d(
+#         input: DataLoader,
+#         constant: dict,
+#         inputs: list,
+#         output: list,
+#         icbc: list,
+#         pde: list,
+#         net: nn.Module,
+#         iterations: int,
+#         report_interval: int,
+#         optimizer: str,
+#         lr: float,
+#         loss_function: str,
+#         imsize: int,
+#         path: str = None,
+#         device='gpu',
+#         pde_coef: float = 1.,
+#         condition_coef: float = 1.,
+#         gt_coef: float = 1.,
+# ):
+#     if path:
+#         Path(path).parent.mkdir(parents=True, exist_ok=True)
+#     else:
+#         warnings.warn("The save path is not specified, the model will not be saved")
+#
+#     net.train()
+#     # net.to(device)
+#     print("<--------------training-------------->")
+#     # 获取损失函数，优化器配置
+#     loss_func = losses.get(loss_function)
+#     optimizer = optim.get(optimizer)
+#     optimizer = optimizer(net.parameters(), lr=lr)
+#     best_loss = float('inf')
+#     imgfilter = SobelFilter(imsize=imsize)
+#     pde_intermediate_dict = {}
+#     icbc_intermediate_dict = {}
+#     # 训练迭代
+#     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3, div_factor=2., pct_start=0.3,
+#                                                     steps_per_epoch=len(input), epochs=iterations)
+#
+#     for epoch in range(iterations):
+#         loss_sum = 0.
+#         for batch_idx, pair in enumerate(input):
+#             img = pair[0]
+#             optimizer.zero_grad()
+#             img = img.to(device)
+#             # 输出
+#
+#             input_tensor_dict = {}
+#             for index, input_ in enumerate(inputs):
+#                 input_tensor_dict[input_] = torch.unsqueeze(img[:, index], dim=1)
+#
+#             out_ = net(img)
+#             out_dic = {}
+#             for index, out in enumerate(output):
+#                 out_dic[out] = torch.unsqueeze(out_[:, index], dim=1)
+#
+#             if batch_idx + epoch == 0:
+#                 if pde:
+#                     for i, v in enumerate(pde):
+#                         pde[i] = split_pde(v, input_tensor_dict, constant, out_dic, pde_intermediate_dict)
+#                 if icbc:
+#                     for i, v in enumerate(icbc):
+#                         icbc[i] = split_condition(v, input_tensor_dict, constant, out_dic, icbc_intermediate_dict)
+#
+#
+#             for key in pde_intermediate_dict.keys():
+#                 pde_intermediate_dict[key] = get_grad2d(key, input_tensor_dict, pde_intermediate_dict, out_dic, imgfilter)
+#
+#             for key in pde_intermediate_dict.keys():
+#                 pde_intermediate_dict[key] = get_grad(key, input_tensor_dict, pde_intermediate_dict, out_dic)
+#             pde_losses = [parse_pde(equation, input_tensor_dict, constant, out_dic, pde_intermediate_dict) for equation in pde]
+#             pde_loss = loss_from_list(loss_func, pde_losses, None)
+#
+#             icbc_losses = []
+#             for condition in icbc:
+#                 icbc_losses += parse_icbc2d(condition, input_tensor_dict, constant, output, icbc_intermediate_dict)
+#             icbc_loss = loss_from_list(loss_func, icbc_losses, None)
+#
+#             loss = pde_coef * pde_loss + condition_coef * icbc_loss
+#             if len(pair) == 2:
+#                 gt_loss = gt_coef * loss_func(pair[1].to(device), out_)
+#                 loss += gt_loss
+#
+#             loss_sum += loss.item()
+#             loss.backward()
+#             optimizer.step()
+#             scheduler.step()
+#             # 报告loss
+#         if (epoch + 1) % report_interval == 0:
+#             print(epoch + 1, "Loss:", loss_sum / (batch_idx + 1))
+#             # 保存网络
+#             if path:
+#                 if loss_sum < best_loss:
+#                     best_loss = loss_sum
+#                     torch.save(net, path)
+#                     print("Epoch", epoch + 1, "saved")
 
 
 def train_bayesian(
@@ -411,8 +465,8 @@ def train_bayesian(
         if (epoch + 1) % report_interval == 0:
             if evaluation:
                 eval_gt = torch.cat(list(eval_ground_truth.values()), dim=1)
-                predict = np.mean([net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
-                     for _ in range(samples)], axis=0)
+                predict = torch.mean(torch.cat([net(torch.cat(list(eval_input_tensor_dict.values()), dim=1))
+                     for _ in range(samples)], dim=0), dim=0)
                 eval_loss = losses.get("mse")(predict, eval_gt)
                 print(epoch + 1, "Train Loss:", loss, "Eval Loss (l2):", eval_loss)
                 if eval_loss.item() < best_loss:
