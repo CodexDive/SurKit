@@ -43,6 +43,7 @@ def get(activation):
         "sigmoid": nn.Sigmoid(),
         "softmax": nn.Softmax(),
         "selu": nn.SELU(),
+        "gelu": nn.GELU(),
     }
 
     if isinstance(activation, str):

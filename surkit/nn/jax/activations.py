@@ -10,14 +10,14 @@ class Swish(nn.Module):
     def __call__(self, x):
         return nn.swish(x)
 
-class Relu(nn.Module):
+class ReLU(nn.Module):
     def setup(self):
         pass
 
     def __call__(self, x):
         return nn.relu(x)
 
-class LeakyRelu(nn.Module):
+class LeakyReLU(nn.Module):
     def setup(self):
         pass
 
@@ -52,6 +52,13 @@ class SELU(nn.Module):
     def __call__(self, x):
         return nn.selu(x)
 
+class GELU(nn.Module):
+    def setup(self):
+        pass
+
+    def __call__(self, x):
+        return nn.gelu(x)
+
 def get(activation):
     """
     Return an activation function based on the given string, or return the given callable activation function
@@ -65,12 +72,13 @@ def get(activation):
 
     activation_dict = {
         "swish": Swish(),
-        "relu": Relu(),
-        "leaky_relu": LeakyRelu(),
+        "relu": ReLU(),
+        "leaky_relu": LeakyReLU(),
         "tanh": Tanh(),
         "sigmoid": Sigmoid(),
         "softmax": Softmax(),
         "selu": SELU(),
+        "gelu": GELU(),
     }
 
     if isinstance(activation, str):
