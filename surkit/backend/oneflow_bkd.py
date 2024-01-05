@@ -3,6 +3,7 @@
 
 import oneflow as flow
 from oneflow import autograd
+from oneflow.utils.data import Dataset, DataLoader
 
 if flow.cuda.is_available():
     device = "cuda"
