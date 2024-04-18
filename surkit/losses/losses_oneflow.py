@@ -9,7 +9,7 @@ __all__ = ['get', 'NLLloss']
 from surkit.nn.oneflow.utils import Normal
 
 
-def get(loss, reduction='mean'):
+def get(loss, reduction='mean', smooth=1.):
     """
     Return a loss function based on the given string, or return the given callable loss function
 
@@ -26,6 +26,10 @@ def get(loss, reduction='mean'):
         "mean squared error": nn.MSELoss(reduction=reduction),
         "mse": nn.MSELoss(reduction=reduction),
         "gaussiannll": GaussianNLLLoss(reduction=reduction),
+        "dice": DiceLoss(smooth=smooth),
+        "bce": nn.BCELoss(reduction=reduction),
+        "binary cross entropy": nn.BCELoss(reduction=reduction),
+        "dice and bce": DC_and_BCE(smooth=smooth),
     }
 
     if isinstance(loss, str):
@@ -67,6 +71,38 @@ def elbo(x, y, samples, net):
 
     loss = log_post - log_prior - log_like
     return loss
+
+
+class DiceLoss(nn.Module):
+    def __init__(self, smooth: float = 1.) -> None:
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, input: flow.Tensor, target: flow.Tensor) -> flow.Tensor:
+        iflat = input.contiguous().view(-1)
+        tflat = target.contiguous().view(-1)
+        intersection = (iflat * tflat).sum()
+        A_sum = flow.sum(iflat)
+        B_sum = flow.sum(tflat)
+        return 1 - (2. * intersection + self.smooth) / (A_sum + B_sum + self.smooth)
+
+
+class DC_and_BCE(nn.Module):
+    def __init__(self, smooth: float = 1.) -> None:
+        super(DC_and_BCE, self).__init__()
+        self.smooth = smooth
+        
+
+    def forward(self, input: flow.Tensor, target: flow.Tensor) -> flow.Tensor:
+        bce_weight = 0.5
+        #flatten label and prediction tensors
+        inputs = input.view(-1)
+        targets = target.view(-1)
+        intersection = (inputs * targets).sum()
+        dice_loss = 1 - (2 * intersection + self.smooth) / (inputs.sum() + targets.sum() + self.smooth)  
+        BCE = flow._C.binary_cross_entropy_loss(inputs, targets, reduction='mean')
+        return BCE * bce_weight + dice_loss * (1 - bce_weight)
+
 
 class _Loss(nn.Module):
     def __init__(self, reduction: str = "mean") -> None:

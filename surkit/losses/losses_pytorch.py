@@ -3,11 +3,12 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = ['get', 'elbo']
 
 
-def get(loss, reduction='mean'):
+def get(loss, reduction='mean', smooth=1.):
     """
     Return a loss function based on the given string, or return the given callable loss function
 
@@ -24,6 +25,10 @@ def get(loss, reduction='mean'):
         "mean squared error": nn.MSELoss(reduction=reduction),
         "mse": nn.MSELoss(reduction=reduction),
         "gaussiannll": nn.GaussianNLLLoss(reduction=reduction),
+        "dice": DiceLoss(smooth=smooth),
+        "bce": nn.BCELoss(reduction=reduction),
+        "binary cross entropy": nn.BCELoss(reduction=reduction),
+        "dice and bce": DC_and_BCE(smooth=smooth),
     }
 
     if isinstance(loss, str):
@@ -31,6 +36,35 @@ def get(loss, reduction='mean'):
 
     if callable(loss):
         return loss
+
+class DiceLoss(nn.Module):
+    def __init__(self, smooth: float = 1.) -> None:
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        iflat = input.contiguous().view(-1)
+        tflat = target.contiguous().view(-1)
+        intersection = (iflat * tflat).sum()
+        A_sum = torch.sum(iflat)
+        B_sum = torch.sum(tflat)
+        return 1 - (2. * intersection + self.smooth) / (A_sum + B_sum + self.smooth)
+
+class DC_and_BCE(nn.Module):
+    def __init__(self, smooth: float = 1.) -> None:
+        super(DC_and_BCE, self).__init__()
+        self.smooth = smooth
+        
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        bce_weight = 0.5
+        #flatten label and prediction tensors
+        inputs = input.view(-1)
+        targets = target.view(-1)
+        intersection = (inputs * targets).sum()
+        dice_loss = 1 - (2 * intersection + self.smooth) / (inputs.sum() + targets.sum() + self.smooth)  
+        BCE = F.binary_cross_entropy(inputs, targets, reduction='mean')
+        return BCE * bce_weight + dice_loss * (1 - bce_weight)
 
 def elbo(x, y, samples, net):
     """
