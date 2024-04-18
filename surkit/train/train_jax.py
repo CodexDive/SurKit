@@ -359,6 +359,9 @@ def train2d(
         path: str = None,
         scheduler_step: int = None,
         scheduler_gamma: float = None,
+        classify: bool = False,
+        seed: int = 2300,
+        multi_gpu: bool = False,
 ):
     if path:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -373,7 +376,7 @@ def train2d(
         sample_shape = sample[0].shape
         break
 
-    init_key = jax.random.PRNGKey(2300)
+    init_key = jax.random.PRNGKey(seed)
 
     # val = unfreeze(net.init(init_key, jax.random.uniform(init_key, sample_shape)))
     val = net.init(init_key, jax.random.uniform(init_key, sample_shape))
@@ -393,10 +396,27 @@ def train2d(
             if bn:
                 out, updates = state.apply_fn({'params': params, 'batch_stats': state.batch_stats},
                                               x=x, train=True, mutable=['batch_stats'])
+                # if classify:
+                #     out = jax.nn.sigmoid(out)
                 gt_loss = loss_func(out, y)
                 return gt_loss, updates
             else:
                 out = state.apply_fn(params, x=x, train=True)
+                # if classify:
+                #     out = jax.nn.sigmoid(out)
+                # def f():
+                #     jax.debug.print("bad")
+                # def t():
+                #     jax.debug.print('good')
+                # jax.debug.print("min {x}", x = out.min())
+                # jax.debug.print("0")
+                # jax.lax.cond((out >= 0).all(), t, f)
+
+                # jax.debug.print("min {x}", x = out.min())
+                # jax.debug.print("max {x}", x = out.max())
+
+                # jax.debug.print("1")
+                # jax.lax.cond((out <= 1).all(), t, f)
                 gt_loss = loss_func(out, y)
                 return gt_loss
         grad_fn = jax.value_and_grad(loss_fn, has_aux=bn)
@@ -410,12 +430,16 @@ def train2d(
         return state, loss_
 
     jit_train_step = jax.jit(train_step)
+    if multi_gpu:
+        flax.jax_utils.replicate(state)
+        jit_train_step = jax.pmap(jit_train_step)
 
     for epoch in range(iterations):
         loss_sum = 0.
         for batch_idx, pair in enumerate(input):
             # print(pair[0].shape)
             state, loss = jit_train_step(state, pair[0], pair[1])
+            # print(loss)
             loss_sum += loss
         if (epoch + 1) % report_interval == 0:
             if evaluation:
@@ -423,6 +447,8 @@ def train2d(
                 for batch_idx, pair in enumerate(input):
                     if bn: predict = state.apply_fn({'params': state.params, 'batch_stats': state.batch_stats}, pair[0])
                     else: predict = state.apply_fn( state.params, pair[0])
+                    # if classify:
+                    #     predict = jax.nn.sigmoid(predict)
                     eval_loss = loss_func(predict, pair[1])
                     eval_loss_sum += eval_loss
                 print(epoch + 1, "Train Loss:", loss_sum / len(input), "Eval Loss:", eval_loss_sum / len(evaluation))

@@ -258,11 +258,15 @@ def train2d(
         path: str = None,
         scheduler_step: int = None,
         scheduler_gamma: float = None,
+        classify: bool = False,
+        multi_gpu: bool = False,
 ):
     if path:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     else:
         warnings.warn("The save path is not specified, the model will not be saved")
+    if multi_gpu:
+        net = nn.DataParallel(net)
     net.train()
     loss_func = losses.get(loss_function)
     optimizer = optim.get(optimizer)
@@ -277,7 +281,9 @@ def train2d(
             img = pair[0]
             optimizer.zero_grad()
             out = net(img)
-            loss = loss_func(pair[1], out)
+            if classify:
+                out = torch.sigmoid(out)
+            loss = loss_func(out, pair[1])
             loss_sum += loss.item()
             loss.backward()
             optimizer.step()
@@ -289,7 +295,9 @@ def train2d(
                 for batch_idx, pair in enumerate(evaluation):
                     img = pair[0]
                     out = net(img)
-                    eval_loss_sum += loss_func(pair[1], out).item()
+                    if classify:
+                        out = torch.sigmoid(out)
+                    eval_loss_sum += loss_func(out, pair[1]).item()
                 print(epoch + 1, "Train Loss:", loss_sum / len(input), "Eval Loss:", eval_loss_sum / len(evaluation))
                 if eval_loss_sum < best_loss:
                     best_loss = eval_loss_sum
