@@ -91,7 +91,7 @@ class Block(nn.Module):
     hard_thresholding_fraction: float = 1.
     hidden_size_factor: int = 1
     def setup(self):
-        self.norm1 = self.norm_layer(self.dim)
+        self.norm1 = self.norm_layer(epsilon=1e-6, use_fast_variance=True)
 
         # if mixing_type == 'afno':
         #       self.filter = AFNO2D(hidden_size=hidden_size, num_blocks=fno_blocks, sparsity_threshold=0.01, hard_thresholding_fraction=1, hidden_size_factor=1)
@@ -109,7 +109,7 @@ class Block(nn.Module):
 
         # self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-        self.norm2 = self.norm_layer(self.dim)
+        self.norm2 = self.norm_layer(epsilon=1e-6, use_fast_variance=True)
         mlp_hidden_dim = int(self.dim * self.mlp_ratio)
         self.mlp = Mlp(
             in_features=self.dim,
@@ -144,7 +144,7 @@ class PatchEmbed(nn.Module):
         num_patches = (img_size[1] // patch_size[1]) * (img_size[0] // patch_size[0])
         self.num_patches = num_patches
 
-        self.proj = Conv2d(self.in_channels, self.embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.proj = Conv2d(self.in_channels, self.embed_dim, kernel_size=patch_size, stride=patch_size, bias=True)
 
     def __call__(self, x):
         x = self.proj(x)
@@ -187,7 +187,6 @@ class AFNONet(nn.Module):
             hybrid_backbone (nn.Module): CNN backbone to use in-place of PatchEmbed module
             norm_layer: (nn.Module): normalization layer
         """
-        super().__init__()
         img_size = _pair(self.img_size)
         patch_size = _pair(self.patch_size)
         assert (
