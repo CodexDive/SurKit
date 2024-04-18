@@ -6,9 +6,6 @@ import jax.numpy as jnp
 from flax import linen as nn
 
 
-def complex_uniform(key, shape):
-    return jnp.array(jax.random.uniform(key, shape), dtype=jnp.complex64)
-
 
 class SpectralConv2d(nn.Module):
     in_channels: int
@@ -17,9 +14,11 @@ class SpectralConv2d(nn.Module):
     modes2: int
 
     def setup(self):
-        scale = (1 / (self.in_channels * self.out_channels))
-        self.weights1 = scale * self.param('weights1', complex_uniform, (self.in_channels, self.out_channels, self.modes1, self.modes2))
-        self.weights2 = scale * self.param('weights2', complex_uniform, (self.in_channels, self.out_channels, self.modes1, self.modes2))
+        def complex_uniform(key, shape):
+            return self.scale * jnp.array(jax.random.uniform(key, shape), dtype=jnp.complex64)
+        self.scale = (1 / (self.in_channels * self.out_channels))
+        self.weights1 = self.param('weights1', complex_uniform, (self.in_channels, self.out_channels, self.modes1, self.modes2))
+        self.weights2 = self.param('weights2', complex_uniform, (self.in_channels, self.out_channels, self.modes1, self.modes2))
 
     # Complex multiplication
     def compl_mul2d(self, input, weights):

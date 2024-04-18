@@ -12,6 +12,8 @@ def softshrink(x, lambd=0.5):
 def view_as_complex(x):
     return jnp.array(x[..., 0] + 1j * x[..., 1])
 
+
+
 class AFNO2D(nn.Module):
     """
     hidden_size: channel dimension size
@@ -25,17 +27,21 @@ class AFNO2D(nn.Module):
     sparsity_threshold: float = 0.01
     hard_thresholding_fraction: int = 1
     hidden_size_factor: int = 1
+
     def setup(self):
         assert (
                 self.hidden_size % self.num_blocks == 0
         ), f"hidden_size {self.hidden_size} should be divisble by num_blocks {self.num_blocks}"
+
+        def randn(key, shape, dtype = float, minval = 0, maxval = 1):
+            return self.scale * jax.random.uniform(key, shape, dtype, minval, maxval)
         self.block_size = self.hidden_size // self.num_blocks
         self.scale = 0.02
 
-        self.w1 = self.scale * self.param('weights1', jax.random.uniform, (2, self.num_blocks, self.block_size, self.block_size * self.hidden_size_factor))
-        self.b1 = self.scale * self.param('bias1', jax.random.uniform, (2, self.num_blocks, self.block_size * self.hidden_size_factor))
-        self.w2 = self.scale * self.param('weights2', jax.random.uniform, (2, self.num_blocks, self.block_size * self.hidden_size_factor, self.block_size))
-        self.b2 = self.scale * self.param('bias2', jax.random.uniform, (2, self.num_blocks, self.block_size))
+        self.w1 = self.param('weights1', randn, (2, self.num_blocks, self.block_size, self.block_size * self.hidden_size_factor))
+        self.b1 = self.param('bias1', randn, (2, self.num_blocks, self.block_size * self.hidden_size_factor))
+        self.w2 = self.param('weights2', randn, (2, self.num_blocks, self.block_size * self.hidden_size_factor, self.block_size))
+        self.b2 = self.param('bias2', randn, (2, self.num_blocks, self.block_size))
 
     def __call__(self, x):
         bias = x
