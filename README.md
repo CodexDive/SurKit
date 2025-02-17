@@ -1,16 +1,34 @@
-# SurKit
+<div align="center">
 
+SurKit
+======
+<h4>a toolkit for deep neural network surrogate model development</h4>
+
+[![PyPI Version](https://img.shields.io/pypi/v/surkit)](https://pypi.org/project/surkit/)
+[![LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![Documentation Status](https://readthedocs.org/projects/surkit/badge/?version=latest)](https://surkit.readthedocs.io/en/latest/?badge=latest)
+</div>
 
-Surkit is a toolkit for surrogate model development.
+**SurKit** is a framework for surrogate models that enables researchers to efficiently construct, train, evaluate, deploy, and execute different kinds of surrogate models across multiple backends, providing an intuitive method to integrate advanced deep learning models into workflows.
 
-## Introduction
+<!-- <img src="images/SurKit and Surrogate Model-1.png" alt="architecture" width="100%"> -->
 
-A surrogate model is a simplified model that can replace a complex or high-fidelity model in engineering problems. Surrogate models can reduce the computational cost and time of evaluating the original model, and facilitate the optimization and approximation processes. SurKit allows users who are unfamiliar with neural networks to get started quickly by selecting the type of surrogate model and providing parameters to automatically generate and train surrogate models.
+<img src="images/architecture.png" alt="architecture" width="100%">
 
-## Installation
+## 🌟 Core features
 
-### System requirements
+- **Multi-Model Integration**: Integrates a variety of data-driven or physics-constrained neural network surrogate models for solving PDEs (e.g., PINN, FNO, UNet, AFNO, etc.).
+- **Active Learning**: Includes multiple sampling strategies such as Latin Hypercube Sampling (LHS), Sobol sequences, and adaptive sampling.
+- **Uncertainty Quantification**: Provides uncertainty quantification through neural network ensembles and Bayesian neural networks.
+- **Standardized Interface**: Features a unified **API** design that supports rapid training and allows for customization through the assembly or replacement of **cores**-level modules.
+- **Multi-GPU Training**: Supports distributed data parallelism for efficient training.
+- **Multiple Backends**: Offers a variety of backends, each with its own unique features and advantages. 
+
+## 🚀 Quick start
+
+### Installation
+
+#### System requirements
 
 SurKit requires some prerequisites including NumPy, Matplotlib, and at least one of the following frameworks:
 
@@ -20,14 +38,19 @@ SurKit requires some prerequisites including NumPy, Matplotlib, and at least one
 
 - JAX: JAX>=0.3.25, Flax>=0.6.4, Optax>=0.1.4
 
-### Install with pip package
+#### Install with pip package
 
 To Install the stable version of Surkit with pip:
 
 ```bash
 pip3 install surkit
 ```
+#### Install from source
+To install the latest development version of Surkit from the source code, you can clone the repository using the following command:
+```bash
+git clone https://github.com/CodexDive/SurKit.git
+```
 
-## Documentation
+## 📖 Documentation
 
 Please refer to https://surkit.readthedocs.io/en/latest/index.html. 
