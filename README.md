@@ -51,6 +51,10 @@ To install the latest development version of Surkit from the source code, you ca
 git clone https://github.com/CodexDive/SurKit.git
 ```
 
+## 📈 Example result
+The following figure illustrates the performance of Surkit on a CFD-solving task using different neural network architectures and backends. The figure shows comparison between the ground truth solution and the predictions from various models:
+<img src="images/cfd.png" alt="cfd result" width="100%">
+
 ## 📖 Documentation
 
 Please refer to https://surkit.readthedocs.io/en/latest/index.html. 
